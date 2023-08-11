@@ -31,6 +31,7 @@ library WebauthnLib {
     error InvalidClientData();
     error InvalidSignature();
 
+    /// @notice Modified from original to use memory instead of calldata
     function WebAuthn_format(
         bytes memory authenticatorData,
         bytes1 authenticatorDataFlagMask,
@@ -51,6 +52,8 @@ library WebauthnLib {
             string memory challengeEncoded = Base64URL.encode32(
                 abi.encodePacked(clientChallenge)
             );
+
+            // TODO: extract challenge from clientData and compare to clientChallenge
 
             // previous implementation that used bytes calldata clientData
             // bytes memory challengeExtracted = new bytes(
@@ -101,6 +104,7 @@ library WebauthnLib {
         return sha256(verifyData);
     }
 
+    /// @notice Modified from original to use memory instead of calldata
     function checkSignature(
         bytes memory authenticatorData,
         bytes1 authenticatorDataFlagMask,

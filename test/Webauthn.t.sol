@@ -5,12 +5,13 @@ import {Webauthn, PassKeyId} from "../src/Webauthn.sol";
 import "forge-std/console2.sol";
 import "forge-std/Test.sol";
 
-contract Template is Test {
+contract WebauthnTest is Test {
     Webauthn webauthnModule = new Webauthn{salt: 0}();
 
     string constant keySalt = "0";
-    string constant keyId = "test";
+    string constant keyId = "key";
 
+    // Creates a passkey using a TS script
     function createPasskey(
         string memory salt
     ) public returns (uint256[2] memory) {
@@ -28,6 +29,7 @@ contract Template is Test {
         return publicKey;
     }
 
+    // Signs and formats a message using a TS script
     function signMessageWithPasskey(
         string memory salt,
         bytes32 message,
@@ -46,16 +48,16 @@ contract Template is Test {
 
         bytes memory res = vm.ffi(cmd);
 
-        // Signature format:
+        // Solidity example of signature format:
         // bytes memory signature = abi.encode(
         //     keccak256("test"), // keyhash
         //     abi.encodePacked(
         //         hex"f8e4b678e1c62f7355266eaa4dc1148573440937063a46d848da1e25babbd20b010000004d"
-        //     ),
-        //     bytes1(0x01),
+        //     ), // authenticatorData
+        //     bytes1(0x01), // clientData
         //     abi.encodePacked(
         //         hex"7b2274797065223a22776562617574686e2e676574222c226368616c6c656e6765223a224e546f2d3161424547526e78786a6d6b61544865687972444e5833697a6c7169316f776d4f643955474a30222c226f726967696e223a2268747470733a2f2f66726573682e6c65646765722e636f6d222c2263726f73734f726967696e223a66616c73657d"
-        //     ),
+        //     ), // clientChallengeDataOffset
         //     uint256(36),
         //     [
         //         uint256(
@@ -64,7 +66,7 @@ contract Template is Test {
         //         uint256(
         //             0x7b71a302b06c91a52b9c4ba5a7fb85226738b02c144e8ee177d034022a79c946
         //         )
-        //     ]
+        //     ] // signature (r, s)
         // );
 
         return res;
@@ -82,26 +84,24 @@ contract Template is Test {
             keyId
         );
 
-        require(
-            webauthnModule.knownKeyHashes(0) == keccak256(bytes(keyId)),
-            "Key not added"
-        );
+        // Ensure key is added
+        assertEq(webauthnModule.knownKeyHashes(0), keccak256(bytes(keyId)));
 
         // Get message to sign
-        bytes32 message = keccak256("test");
+        bytes32 messageHash = keccak256("message");
 
         // Create signature
         bytes memory signature = signMessageWithPasskey(
             keySalt,
-            message,
+            messageHash,
             keyId
         );
 
         // Verify signature
         bool verified = webauthnModule.verifyPasskeySignature(
             signature,
-            message
+            messageHash
         );
-        require(verified, "Signature invalid");
+        assertTrue(verified);
     }
 }

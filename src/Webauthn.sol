@@ -10,12 +10,14 @@ struct PassKeyId {
     string keyId;
 }
 
+/// @title Webauthn demo contract
+/// @notice This contract is a demo of how to use the Webauthn library
+/// @author kopy-kat
 contract Webauthn {
-    // TODO: change to be allowed by account associated storage
     mapping(bytes32 => PassKeyId) authorisedKeys;
     bytes32[] public knownKeyHashes;
 
-    /* ----------------------------- EXTERNAL Functions ---------------------------------- */
+    /// @dev Add passkey pair to mapping and array
     function addPassKey(
         bytes32 _keyHash,
         uint256 _pubKeyX,
@@ -27,6 +29,7 @@ contract Webauthn {
         knownKeyHashes.push(_keyHash);
     }
 
+    /// @dev Verify signature of message
     function verifyPasskeySignature(
         bytes calldata signature,
         bytes32 messageHash
@@ -59,12 +62,6 @@ contract Webauthn {
 
     /* ------------------------------------- EVENTS -------------------------------------- */
     event PublicKeyAdded(
-        bytes32 indexed keyHash,
-        uint256 pubKeyX,
-        uint256 pubKeyY,
-        string keyId
-    );
-    event PublicKeyRemoved(
         bytes32 indexed keyHash,
         uint256 pubKeyX,
         uint256 pubKeyY,
